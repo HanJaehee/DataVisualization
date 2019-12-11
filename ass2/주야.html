@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <style>
+    svg{
+        width:400px;
+        height:320px;
+        border: 1px solid black;
+    }
+    .pie{
+        fill:orange;
+        stroke:white;
+    }
+    .total{
+        font-size: 9pt;
+        text-anchor:middle;
+    }
+    .pieNum{
+        font-size:10pt;
+        text-anchor:middle;
+    }
+
+    h1{
+        padding: 0px 0px 0px 120px;
+    }
+    </style>
+    <head>
+        <meta charset="utf-8">
+        <title>D3.sj start</title>
+    </head>
+    <body>
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <h1>주간, 야간 별 교통사고 사망자 </h1>
+        <h1>2017&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp2018</h1>
+        <svg id="graph1"></svg> <svg id="graph2"></svg>
+    </body>
+
+    <script>
+    d3.csv("사망교통사고_2017.csv",
+    function(error, data){
+        console.log("----------2017---------");
+        let result = daynight(data);
+        piechart(result, "#graph1");
+    });
+
+    d3.csv("사망교통사고_2018.csv",
+    function(error, data){
+        console.log("----------2018---------");
+        let result = daynight(data);
+        piechart(result, "#graph2");
+    });
+
+    function daynight(dataset) { //주간, 야간별 사망자수 분류
+        let day_death_num = 0
+        ,night_death_num = 0
+        ,daynight = new Array;
+
+        for(let i=0; i<dataset.length; i++){
+            let death_num = Number(dataset[i]["사망자수"]);
+            if(dataset[i]["주야"].indexOf("주") != -1)
+                day_death_num += death_num;
+            else
+                night_death_num += death_num;
+        }
+        console.log("1 : " + day_death_num + "   2 : " + night_death_num);
+        daynight.push(day_death_num, night_death_num);
+        return daynight;
+    }
+
+    function piechart(arry, tag){
+        let svgWidth = 320;
+        let svgHeight = 240;
+        
+        let pie = d3.layout.pie();
+        let arc = d3.svg.arc().innerRadius(50).outerRadius(150);
+
+        let pieElements = d3.select(tag)
+            .selectAll("path")
+            .data(pie(arry))
+            .enter()
+            .append("g")
+            .attr("transform", "translate("+ (svgWidth/2+50)+","+ (svgHeight/2+40)+")");
+        
+        pieElements
+            .append("path")
+            .attr("class", "pie")
+            .attr("d", arc)
+            .style("fill", function(d, i){
+                return ["orange","skyblue"][i];
+            })
+            .transition()
+            .duration(200)
+            .delay(function(d,i){
+                return i*200;
+            })
+            .ease("linear")
+            .attrTween("d", function(d,i){
+                let interpolate = d3.interpolate(
+                    {startAngle : d.startAngle, endAngle : d.startAngle},
+                    {startAngle : d.startAngle, endAngle : d.endAngle}
+                );
+                return function(t){
+                    return arc(interpolate(t));
+                }
+            });
+
+        var textElemnets = d3.select(tag)
+            .append("text")
+            .attr("class","toral")
+            .attr("transform", "translate("+ (svgWidth/2+10)+","+ (svgHeight/2+40)+")")
+            .text("합계 : " + d3.sum(arry));
+        
+        pieElements
+            .append("text")
+            .attr("class", "pieNum")
+            .attr("transform", function(d,i){
+                return "translate("+arc.centroid(d)  +")";
+            })
+            .text(function(d,i){
+                if(i===1)
+                    return "주간 : " + d.value;
+                else
+                    return "야간 : " + d.value;
+            });
+    }
+
+    </script>
+</html>

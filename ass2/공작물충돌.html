@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<style>
+.grid line {
+    stroke: lightgrey;
+    stroke-opacity: 0.7;
+}
+
+.lineChart {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+
+.lineChart:hover {
+    stroke: black;
+    stroke-width: 3px;
+}
+</style>
+<body>
+    <h1>차량단독 사고 중 공작물 충돌</h1>
+<svg width="400" height="300"></svg> 
+</body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+/*
+d3.csv("사망교통사고_2017.csv", function(error, data) {
+  	if (error) throw error;
+    let result = cartype(data);
+    console.log(result);
+}); //
+*/
+var series = ["승용차", "승합차", "화물차", "이륜차", "자전거"];
+
+var dataset = [{'2017': 158, '2018':200},
+                {'2017': 3, '2018':11},
+                {'2017': 44, '2018':92},
+                {'2017': 38, '2018':71},
+                {'2017': 7, '2018':1}, ];
+
+
+var keys = d3.keys(dataset[0]);
+var data = [];
+
+dataset.forEach(function(d, i) {
+    data[i] = keys.map(function(key) { return {x: key, y: d[key]}; })
+});
+
+var margin = {left: 20, top: 10, right: 10, bottom: 20};
+var svg = d3.select("svg");
+var width  = parseInt(svg.style("width"), 10) - margin.left - margin.right;
+var height = parseInt(svg.style("height"), 10)- margin.top  - margin.bottom;
+
+var svgG = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var xScale = d3.scalePoint()//scaleBand() scaleOrdinal
+    .domain(keys)
+    .rangeRound([50, width-100]);
+
+var yScale = d3.scaleLinear()
+    .domain([0, d3.max(dataset, function(d) { return d3.max(keys, function(key) { return d[key]+30; }); })]).nice()
+    .range([height, 0]);
+
+var colors = d3.scaleOrdinal(d3.schemeCategory20);
+    
+svgG.append("g")            
+    .attr("class", "grid")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(xScale)
+        .tickSize(-height)
+    );
+    
+svgG.append("g")
+    .attr("class", "grid")
+    .call(d3.axisLeft(yScale)
+        .ticks(5)
+        .tickSize(-width)
+    );
+    
+var line = d3.line()
+    .curve(d3.curveBasis)
+    .x(function(d) { return xScale(d.x); })
+    .y(function(d) { return yScale(d.y); });
+    
+var lineG = svgG.append("g")
+    .selectAll("g")
+    .data(data)
+    .enter().append("g");
+
+lineG.append("path")
+    .attr("class", "lineChart")
+    .style("stroke", function(d, i) { return colors( series[i]); })
+    .attr("d", line);
+
+var legend = svgG.append("g")
+    .attr("text-anchor", "end")
+    .selectAll("g")
+    .data(series)
+    .enter().append("g")
+    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+legend.append("rect")
+    .attr("x", width - 20)
+    .attr("width", 19)
+    .attr("height", 19)
+    .attr("fill", colors);
+
+legend.append("text")
+    .attr("x", width - 30)
+    .attr("y", 9.5)
+    .attr("dy", "0.32em")
+    .text(function(d) { return d; });
+
+/*
+function cartype(data){ //이 함수로 데이터 추출
+    let car = 0
+    ,truck = 0
+    ,bicycle = 0
+    ,motorcycle = 0
+    ,van = 0
+    ,death_num = 0
+    ,ary = ["승용차", "승합차", "화물차", "이륜차", "자전거"]
+    ,acc_type = 0
+    ,car_type = 0
+    ,tmp = new Object()
+    ,result = new Array()
+    ,num = new Array();
+    
+    for(let i=0; i<data.length; i++){
+        let accident = data[i]["사고유형_대분류"];
+        death_num = data[i]["사망자수"];
+        if (accident == "차량단독"){
+            let acc_type = data[i]["사고유형"]
+            if (acc_type == "공작물충돌"){
+                car_type = data[i]["가해자_당사자종별"]
+                if (car_type == "승용차")
+                    car += Number(death_num);
+                else if (car_type == "승합차")
+                    van += Number(death_num);
+                else if (car_type == "화물차")
+                    truck += Number(death_num);
+                else if (car_type == "이륜차")
+                    motorcycle += Number(death_num);
+                else if (car_type == "자전거")
+                    bicycle += Number(death_num);
+            }
+        }
+    }
+    num = [car, van, truck, motorcycle, bicycle];
+    for(let i=0; i<ary.length; i++){
+        tmp = {"type": ary[i], "num" : num[i]};
+        result.push(tmp);
+    }
+    //console.log(result);
+    return result
+}
+*/
+</script>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+body {
+  margin: 15px;
+  background-color: #F1F3F3    
+}
+.bar {
+	fill: #6F257F;
+}
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #D4D8DA;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.x path {
+	display: none;
+}
+.toolTip {
+	position: absolute;
+  display: none;
+  min-width: 80px;
+  height: auto;
+  background: none repeat scroll 0 0 #ffffff;
+  border: 1px solid #6F257F;
+  padding: 14px;
+  text-align: center;
+}
+</style>
+<h1>연도별 사고유형 별 사망자 수</h1>
+2018
+<svg id="graph1" width="600" height="300"></svg> 
+
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+  
+d3.csv("사망교통사고_2018.csv", function(error, data) {
+  	if (error) throw error;
+    result = accident(data)
+    horizontal(result, "#graph1");
+});
+
+
+function accident(data){
+    let ctoc = 0 //차대차
+    ,ctom = 0 //차대사람
+    ,onlyc = 0 //차량단독
+    ,accident = 0
+    ,ary = ["차대차", "차대사람", "차량단독"]
+    ,num = new Array()
+    ,tmp = new Object()
+    ,result = new Array()
+    ,death_num = 0;
+
+    for(let i=0; i<data.length; i++){
+        let accident = data[i]["사고유형_대분류"];
+        death_num = data[i]["사망자수"];
+        if (accident == "차대차")
+            ctoc += Number(death_num);
+        else if(accident == "차대사람")
+            ctom += Number(death_num);
+        else if(accident == "차량단독")
+            onlyc += Number(death_num);
+    }
+    num = [ctoc, ctom, onlyc];
+    for(let i=0; i<ary.length; i++){
+        tmp = {"type": ary[i], "num" : num[i]};
+        result.push(tmp);
+    }
+    return result
+}
+
+function horizontal(data, tag){
+    var svg = d3.select(tag),
+    margin = {top: 10, right: 10, bottom: 10, left: 80},
+    width = +svg.attr("width") - margin.left - margin.right,
+    height = +svg.attr("height") - margin.top - margin.bottom;
+  
+    var tooltip = d3.select("body").append("div").attr("class", "toolTip");
+    
+    var x = d3.scaleLinear().range([0, width]);
+    var y = d3.scaleBand().range([height, 0]);
+
+    var g = svg.append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    data.sort(function(a, b) { return a.num - b.num; });
+
+    x.domain([0, d3.max(data, function(d) { 
+            return d.num; 
+        })]);
+    y.domain(data.map(function(d) { return d.type; })).padding(0.3);
+
+    g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).ticks(5).tickFormat(function(d) { return parseInt(d); }).tickSizeInner([-height]));
+
+    g.append("g")
+        .attr("class", "y axis")
+        .call(d3.axisLeft(y));
+
+    g.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", 0)
+        .attr("height", y.bandwidth())
+        .attr("y", function(d) { return y(d.type); })
+        .attr("width", function(d) {
+            return x(d.num); 
+        })
+        .on("mousemove", function(d){
+            tooltip
+                .style("left", d3.event.pageX - 50 + "px")
+                .style("top", d3.event.pageY - 70 + "px")
+                .style("display", "inline-block")
+                .html((d.type) + "<br>" + (d.num) + "명");
+        })
+            .on("mouseout", function(d){ tooltip.style("display", "none");});
+};
+</script>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <div class="bg-light border-right" id="sidebar-wrapper">
+        <div class="sidebar-heading">교통사고 사망자수<br>시각화</div>
+        <div class="list-group list-group-flush">
+                <input class="btn btn btn-info list-group-item list-group-item-action bg-light" type="button" value='▼데이터 시각화▼'></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='요일별' onclick = "changeurl('ass2/요일별.html','script/script_요일.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='주간야간' onclick = "changeurl('ass2/주야.html','script/script_주야.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='사고유형_2017' onclick = "changeurl('ass2/사고유형_2017.html','script/script_2017.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='사고유형_2018' onclick = "changeurl('ass2/사고유형_2018.html','script/script_2018.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='차량단독 사고유형' onclick = "changeurl('ass2/차량단독.html','script/script_단독.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='공작물 충돌'' onclick = "changeurl('ass2/공작물충돌.html','script/script_공작물.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='도로이탈 추락' onclick = "changeurl('ass2/도로이탈추락.html','script/script_도로.html')"></input>
+            <input class="btn btn btn-info list-group-item list-group-item-action bg-light" type="button" value='▼지도 시각화▼'></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='공작물 충돌' onclick = "changeurl('ass3/2018_공작물충돌.html','script/script_도로지도.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='도로이탈추락' onclick = "changeurl('ass3/2018_도로이탈추락.html','script/script_도로지도.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='ATV' onclick = "changeurl('ass3/2018_ATV.html','script/script_ATV.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='기사 1' onclick = "changeurl('https://www.nongmin.com/news/NEWS/POL/ETC/317169/view','script/script_기사1.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='기사 2' onclick = "changeurl(' http://www.kado.net/?mod=news&act=articleView&idxno=964243','script/script_기사2.html')"></input>
+            <input class="btn btn-outline-secondary list-group-item list-group-item-action bg-light" type="button" value='결론' onclick = "changeurl('result.html', 'script/result.html')"></input>
+        </div>
+        </div>
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <iframe class="container-fluid" src="script/설명.html" width=100% height=10% id="script"></iframe>
+            </nav>
+            <iframe class="container-fluid" src="메인.png"" width="500" height="70%" id="frame"></iframe>
+        </div>
+    </div>
+    
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function changeurl(url1, url2){
+            document.getElementById("frame").src = url1;
+            document.getElementById("script").src = url2;
+        }
+    </script>
+</body>

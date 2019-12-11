@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<title>D3 v4 - piechart</title>
+<style>
+#graph {
+    width: 900px;
+    height: 500px;
+}
+</style>
+</head>
+
+<body>
+<h1>사고유형중 '차량단독' 세부 정보</h1>
+<h1>2017&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp2018</h1>
+<div id="graph1" style="float:left; margin-right:40px;"> </div>
+<div id="graph2" style=float:left;> </div>
+<script src="https://d3js.org/d3.v4.min.js"></script>    
+<script>
+
+d3.csv("사망교통사고_2017.csv", function(error, data) {
+  	if (error) throw error;
+    let result = alone(data)
+    drawChart(result, "#graph1");
+});
+
+d3.csv("사망교통사고_2018.csv", function(error, data) {
+  	if (error) throw error;
+    let result = alone(data)
+    drawChart(result, "#graph2");
+});
+
+
+function drawChart(data, tag) {
+    var text = "";
+
+    var width = 200;
+    var height = 200;
+    var thickness = 40;
+    var duration = 750;
+    var padding = 10;
+    var opacity = .8;
+    var opacityHover = 1;
+    var otherOpacityOnHover = .8;
+    var tooltipMargin = 13;
+
+    var radius = Math.min(width-padding, height-padding) / 2;
+    var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var svg = d3.select(tag)
+    .append('svg')
+    .attr('class', 'pie')
+    .attr('width', width)
+    .attr('height', height);
+
+    var g = svg.append('g')
+    .attr('transform', 'translate(' + (width/2) + ',' + (height/2) + ')');
+
+    var arc = d3.arc()
+    .innerRadius(0)
+    .outerRadius(radius);
+
+    var pie = d3.pie()
+    .value(function(d) { return d.num; })
+    .sort(null);
+
+    var path = g.selectAll('path')
+    .data(pie(data))
+    .enter()
+    .append("g")  
+    .append('path')
+    .attr('d', arc)
+    .attr('fill', (d,i) => color(i))
+    .style('opacity', opacity)
+    .style('stroke', 'white')
+    .on("mouseover", function(d) {
+        d3.selectAll('path')
+            .style("opacity", otherOpacityOnHover);
+        d3.select(this) 
+            .style("opacity", opacityHover);
+
+        let g = d3.select("svg")
+            .style("cursor", "pointer")
+            .append("g")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+    
+        g.append("text")
+            .attr("class", "name-text")
+            .text(`${d.data.type} (${d.data.num})`)
+            .attr('text-anchor', 'middle');
+        
+        let text = g.select("text");
+        let bbox = text.node().getBBox();
+        let padding = 2;
+        g.insert("rect", "text")
+            .attr("x", bbox.x - padding)
+            .attr("y", bbox.y - padding)
+            .attr("width", bbox.width + (padding*2))
+            .attr("height", bbox.height + (padding*2))
+            .style("fill", "white")
+            .style("opacity", 0.75);
+        })
+    .on("mousemove", function(d) {
+            let mousePosition = d3.mouse(this);
+            let x = mousePosition[0] + width/2;
+            let y = mousePosition[1] + height/2 - tooltipMargin;
+        
+            let text = d3.select('.tooltip text');
+            let bbox = text.node().getBBox();
+            if(x - bbox.width/2 < 0) {
+            x = bbox.width/2;
+            }
+            else if(width - x - bbox.width/2 < 0) {
+            x = width - bbox.width/2;
+            }
+        
+            if(y - bbox.height/2 < 0) {
+            y = bbox.height + tooltipMargin * 2;
+            }
+            else if(height - y - bbox.height/2 < 0) {
+            y = height - bbox.height/2;
+            }
+        
+            d3.select('.tooltip')
+            .style("opacity", 1)
+            .attr('transform',`translate(${x}, ${y})`);
+        })
+    .on("mouseout", function(d) {   
+        d3.select("svg")
+            .style("cursor", "none")  
+            .select(".tooltip").remove();
+        d3.selectAll('path')
+            .style("opacity", opacity);
+        })
+    .on("touchstart", function(d) {
+        d3.select("svg")
+            .style("cursor", "none");    
+    })
+    .each(function(d, i) { this._current = i; });
+
+    let legend = d3.select(tag).append('div')
+                .attr('class', 'legend')
+                .style('margin-top', '30px');
+
+    let keys = legend.selectAll('.key')
+                .data(data)
+                .enter().append('div')
+                .attr('class', 'key')
+                .style('display', 'flex')
+                .style('align-items', 'center')
+                .style('margin-right', '20px');
+
+            keys.append('div')
+                .attr('class', 'symbol')
+                .style('height', '10px')
+                .style('width', '10px')
+                .style('margin', '5px 5px')
+                .style('background-color', (d, i) => color(i));
+
+            keys.append('div')
+                .attr('class', 'name')
+                .text(d => `${d.type} (${d.num})`);
+
+            keys.exit().remove();
+}
+
+
+function alone(data){
+    let workpiece_col = 0 //공작물충돌
+    ,road_fall= 0 //도로이탈 추락
+    ,overturn = 0 //전도전복
+    ,tilt = 0//전도
+    ,ary = ["공작물충돌", "도로이탈추락", "전도전복", "전도"]
+    ,num = new Array()
+    ,tmp = new Object()
+    ,result = new Array()
+    ,death_num = 0;
+
+    for(let i=0; i<data.length; i++){
+        let accident = data[i]["사고유형_대분류"];
+        death_num = data[i]["사망자수"];
+        if(accident == "차량단독"){
+            let type = data[i]["사고유형"];
+            if(type == "공작물충돌")
+                workpiece_col += Number(death_num);
+            if(type == "도로이탈 추락")
+                road_fall += Number(death_num);
+            if(type == "전도전복")
+                overturn += Number(death_num);
+            if(type == "전도")
+                tilt += Number(death_num);
+        }
+    }
+    console.log(num);
+    num = [workpiece_col, road_fall, overturn, tilt];
+    for(let i=0; i<ary.length; i++){
+        tmp = {"type": ary[i], "num" : num[i]};
+        result.push(tmp);
+    }
+    return result
+}
+</script>    
+</body>
+</html>
